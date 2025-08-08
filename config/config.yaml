@@ -1,0 +1,73 @@
+# Bear MCP Server Configuration
+# This is the default configuration file for the Bear Notes MCP Server
+
+# Bear Database Configuration
+bear_db:
+  # Path to Bear database (leave null for auto-detection)
+  path: null
+  # Open database in read-only mode
+  read_only: true
+  # Database connection timeout in seconds
+  timeout: 30.0
+  # SQLite check_same_thread parameter
+  check_same_thread: false
+
+# Embedding Generation Configuration
+embedding:
+  # Sentence transformer model for generating embeddings
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  # Batch size for processing multiple notes
+  batch_size: 32
+  # Maximum token length for embeddings
+  max_length: 512
+  # Cache directory for embeddings (null for default)
+  cache_dir: null
+
+# Vector Storage Configuration (ChromaDB)
+vector_storage:
+  # Directory for persistent vector storage
+  persist_directory: ./chroma_db
+  # Collection name for Bear notes
+  collection_name: bear_notes
+  # Distance function for similarity calculations
+  distance_function: cosine
+
+# Ollama AI Integration Configuration
+ollama:
+  # Base URL for Ollama API
+  base_url: http://localhost:11434
+  # Default model for summarization
+  model: llama2
+  # Request timeout in seconds
+  timeout: 60.0
+  # Maximum retries for failed requests
+  max_retries: 3
+
+# MCP Server Configuration
+mcp_server:
+  # Server name
+  name: bear-notes-mcp
+  # Server version
+  version: 0.1.0
+  # Maximum number of resources to return
+  max_resources: 1000
+
+# Logging Configuration
+logging:
+  # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: INFO
+  # Logging format (json or text)
+  format: json
+  # Optional log file path (null for console only)
+  file_path: null
+
+# Performance Configuration
+performance:
+  # LRU cache size for embeddings
+  cache_size: 1000
+  # Minimum similarity threshold for related notes
+  similarity_threshold: 0.7
+  # Maximum number of related notes to return
+  max_related_notes: 10
+  # Debounce time for database refresh triggers
+  refresh_debounce_seconds: 2.0

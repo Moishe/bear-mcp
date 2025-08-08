@@ -8,3 +8,42 @@ wheels/
 
 # Virtual environments
 .venv
+venv/
+env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Cache directories
+.cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Application specific
+*.log
+logs/
+tmp/
+temp/
+
+# Local configuration overrides
+config/local.yaml
+.env
+.env.local
+
+# Embedding and vector storage
+embeddings/
+chroma_db/
+*.chroma
