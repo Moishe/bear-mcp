@@ -4,8 +4,8 @@ import asyncio
 from typing import Any, Dict, List, Optional
 
 import structlog
-from mcp import ClientSession, StdioServerParameters
-from mcp.server import Server
+from mcp import ClientSession
+from mcp.server import Server, InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import (
     Resource, 
@@ -15,6 +15,9 @@ from mcp.types import (
     ListResourcesResult,
     ListToolsResult,
     ReadResourceResult,
+    ServerCapabilities,
+    ToolsCapability,
+    ResourcesCapability,
 )
 
 from bear_mcp.config.models import BearMCPConfig
@@ -189,12 +192,6 @@ class BearMCPServer:
         """Run the MCP server."""
         await self.initialize()
         
-        # Configure server parameters
-        server_params = StdioServerParameters(
-            server_name=self.config.mcp_server.name,
-            server_version=self.config.mcp_server.version,
-        )
-        
         logger.info(
             "Starting MCP server", 
             name=self.config.mcp_server.name,
@@ -202,12 +199,23 @@ class BearMCPServer:
         )
         
         try:
+            # Configure initialization options
+            initialization_options = InitializationOptions(
+                server_name=self.config.mcp_server.name,
+                server_version=self.config.mcp_server.version,
+                capabilities=ServerCapabilities(
+                    tools=ToolsCapability(listChanged=True),
+                    resources=ResourcesCapability(subscribe=False, listChanged=True)
+                )
+            )
+            
             # Run the stdio server
             async with stdio_server() as (read_stream, write_stream):
                 await self.server.run(
-                    read_stream,
-                    write_stream,
-                    server_params
+                    read_stream, 
+                    write_stream, 
+                    initialization_options,
+                    raise_exceptions=False
                 )
         finally:
             await self.cleanup()
