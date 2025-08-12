@@ -73,8 +73,8 @@ class TestSemanticSearchService:
         assert service._initialized is False
 
     @pytest.mark.asyncio
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_service_initialization(self, mock_chroma, mock_transformer, semantic_config):
         """Test service initialization."""
         # Setup mocks
@@ -93,8 +93,9 @@ class TestSemanticSearchService:
         mock_chroma.assert_called_once()
         assert service._initialized is True
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_index_notes(self, mock_chroma, mock_transformer, semantic_config, sample_notes):
         """Test indexing notes into vector store."""
         # Setup mocks
@@ -123,8 +124,9 @@ class TestSemanticSearchService:
         assert call_args.kwargs["ids"][0] == "NOTE-ML-1"
         assert call_args.kwargs["ids"][1] == "NOTE-DL-2"
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_search_notes(self, mock_chroma, mock_transformer, semantic_config):
         """Test searching for similar notes."""
         # Setup mocks
@@ -155,8 +157,9 @@ class TestSemanticSearchService:
         assert results[0]["similarity"] == 0.9  # 1.0 - 0.1
         assert "title" in results[0]["metadata"]
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_find_related_notes(self, mock_chroma, mock_transformer, semantic_config):
         """Test finding notes related to a given note."""
         # Setup mocks
@@ -172,7 +175,7 @@ class TestSemanticSearchService:
             "metadatas": [[{"title": "Deep Learning Networks"}]],
             "documents": [[None]]
         }
-        mock_client.get_or_create_collection.return_value = mock_client
+        mock_client.get_or_create_collection.return_value = mock_collection
         mock_chroma.return_value = mock_client
         
         service = SemanticSearchService(semantic_config)
@@ -195,8 +198,9 @@ class TestSemanticSearchService:
         assert results[0]["id"] == "NOTE-DL-2"
         assert results[0]["similarity"] == 0.8  # 1.0 - 0.2
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_update_note_embedding(self, mock_chroma, mock_transformer, semantic_config):
         """Test updating embedding for a modified note."""
         # Setup mocks
@@ -228,8 +232,9 @@ class TestSemanticSearchService:
         mock_model.encode.assert_called_once()
         mock_collection.update.assert_called_once()
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_delete_note_embedding(self, mock_chroma, mock_transformer, semantic_config):
         """Test deleting note embedding."""
         # Setup mocks
@@ -248,8 +253,9 @@ class TestSemanticSearchService:
         # Verify deletion
         mock_collection.delete.assert_called_once_with(ids=["NOTE-ML-1"])
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_get_service_stats(self, mock_chroma, mock_transformer, semantic_config):
         """Test getting service statistics."""
         # Setup mocks
@@ -276,8 +282,9 @@ class TestSemanticSearchService:
 class TestSemanticServiceIntegration:
     """Integration tests for semantic service."""
 
-    @patch('bear_mcp.semantic.service.SentenceTransformer')
-    @patch('bear_mcp.semantic.service.chromadb.PersistentClient')
+    @pytest.mark.asyncio
+    @patch('bear_mcp.semantic.embedding.SentenceTransformer')
+    @patch('bear_mcp.semantic.vector_storage.chromadb.PersistentClient')
     async def test_end_to_end_workflow(self, mock_chroma, mock_transformer, semantic_config, sample_notes):
         """Test complete workflow: index, search, update, delete."""
         # Setup mocks
