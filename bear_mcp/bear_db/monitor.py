@@ -84,8 +84,15 @@ class DatabaseChangeHandler(FileSystemEventHandler):
         if self._refresh_task and not self._refresh_task.done():
             self._refresh_task.cancel()
         
-        # Schedule new refresh task
-        self._refresh_task = asyncio.create_task(self._debounced_refresh())
+        # Try to schedule new refresh task in the main event loop
+        try:
+            loop = asyncio.get_running_loop()
+            self._refresh_task = loop.create_task(self._debounced_refresh())
+        except RuntimeError:
+            # No event loop running, call callback directly (synchronous fallback)
+            logger.debug("No event loop available, calling callback synchronously")
+            self._pending_refresh = False
+            self.callback()
     
     async def _debounced_refresh(self) -> None:
         """Execute a debounced refresh after waiting."""

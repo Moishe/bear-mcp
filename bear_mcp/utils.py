@@ -38,7 +38,7 @@ def setup_logging(config) -> None:
     import logging
     logging.basicConfig(
         format="%(message)s",
-        stream=sys.stdout,
+        stream=sys.stderr,
         level=getattr(logging, config.level),
     )
 

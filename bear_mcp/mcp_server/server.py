@@ -11,13 +11,12 @@ from mcp.types import (
     Resource, 
     Tool, 
     TextContent, 
-    CallToolResult,
-    ListResourcesResult,
-    ListToolsResult,
     ReadResourceResult,
+    Prompt,
     ServerCapabilities,
     ToolsCapability,
     ResourcesCapability,
+    PromptsCapability,
 )
 
 from bear_mcp.config.models import BearMCPConfig
@@ -113,7 +112,7 @@ class BearMCPServer:
         """Set up MCP server request handlers."""
         
         @self.server.list_resources()
-        async def list_resources() -> ListResourcesResult:
+        async def list_resources():
             """Handle list_resources requests."""
             try:
                 if not self.resource_manager:
@@ -122,7 +121,7 @@ class BearMCPServer:
                 resources = await self.resource_manager.list_resources()
                 logger.debug("Listed resources", count=len(resources))
                 
-                return ListResourcesResult(resources=resources)
+                return resources
                 
             except Exception as e:
                 logger.error("Error listing resources", error=str(e))
@@ -145,7 +144,7 @@ class BearMCPServer:
                 raise
         
         @self.server.list_tools()
-        async def list_tools() -> ListToolsResult:
+        async def list_tools():
             """Handle list_tools requests."""
             try:
                 if not self.tool_manager:
@@ -154,14 +153,14 @@ class BearMCPServer:
                 tools = await self.tool_manager.list_tools()
                 logger.debug("Listed tools", count=len(tools))
                 
-                return ListToolsResult(tools=tools)
+                return tools
                 
             except Exception as e:
                 logger.error("Error listing tools", error=str(e))
                 raise
         
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
+        async def call_tool(name: str, arguments: Dict[str, Any]):
             """Handle call_tool requests."""
             try:
                 if not self.tool_manager:
@@ -170,10 +169,44 @@ class BearMCPServer:
                 result = await self.tool_manager.call_tool(name, arguments)
                 logger.debug("Called tool", name=name)
                 
-                return result
+                # Return as dict to avoid tuple serialization issue
+                return {
+                    "content": [content.model_dump() for content in result.content] if result.content else [],
+                    "meta": result.meta,
+                    "isError": result.isError
+                }
                 
             except Exception as e:
                 logger.error("Error calling tool", name=name, error=str(e))
+                raise
+        
+        @self.server.list_prompts()
+        async def list_prompts():
+            """Handle list_prompts requests."""
+            try:
+                prompts = [
+                    Prompt(
+                        name="summarize-note",
+                        description="Summarize a Bear note using AI",
+                        arguments=[
+                            {
+                                "name": "note_id",
+                                "description": "ID of the note to summarize",
+                                "required": True
+                            },
+                            {
+                                "name": "style",
+                                "description": "Summary style (bullet-points, paragraph, executive)",
+                                "required": False
+                            }
+                        ]
+                    )
+                ]
+                
+                return prompts
+                
+            except Exception as e:
+                logger.error("Error listing prompts", error=str(e))
                 raise
     
     def _on_database_change(self) -> None:
@@ -205,7 +238,8 @@ class BearMCPServer:
                 server_version=self.config.mcp_server.version,
                 capabilities=ServerCapabilities(
                     tools=ToolsCapability(listChanged=True),
-                    resources=ResourcesCapability(subscribe=False, listChanged=True)
+                    resources=ResourcesCapability(subscribe=False, listChanged=True),
+                    prompts=PromptsCapability(listChanged=True)
                 )
             )
             

@@ -1,10 +1,31 @@
 """Main entry point for Bear MCP Server."""
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
 
 import structlog
+
+# Configure basic logging to stderr immediately
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stderr,
+    level=logging.INFO,
+)
+
+# Configure structlog to use stderr by default
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.processors.JSONRenderer(),
+    ],
+    wrapper_class=structlog.stdlib.BoundLogger,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)
 
 from bear_mcp.config.settings import load_config
 from bear_mcp.mcp_server.server import BearMCPServer
